@@ -14,19 +14,23 @@ const router = express.Router() // router will have all routes attached to it
 ///////////////////////////////////////////////
 
 
-router.get('/seed', (req, res) => {
-
-    
-
+router.use((req,res, next) => {
+    console.log(req.session)
+    if(req.session.loggedIn){
+        next();
+    }else {
+        res.redirect('/user/login')
+    }
 })
 
 router.get('/', (req, res) => {
-
+    console.log(req.session)
     // Get all fruits from mongo and send them back
+    // Fruit.find({})
     Fruit.find({})
     .then((fruits) => {
         // res.json(fruits)
-        res.render('fruits/index.ejs', { fruits })
+        res.render('fruits/index.ejs', { fruits, user: req.session.username })
     })
     .catch(err => console.log(err))
 
@@ -37,8 +41,31 @@ router.get('/new', (req, res) => {
 })
 
 router.post('/', (req, res) => {
-    
+   //this is the current req.body 
+// {
+//     name: 'pear',
+//     color: 'peach',
+//     readyToEat: 'on'
+// }
+
     req.body.readyToEat = req.body.readyToEat === 'on' ? true : false
+     //this is the  req.body after this line
+    // {
+//     name: 'pear',
+//     color: 'peach',
+//     readyToEat: true
+// }
+
+    
+    req.body.username = req.session.username;
+    //this is the  req.body after this line
+        // {
+//     name: 'pear',
+//     color: 'peach',
+//     readyToEat: true,
+//     username: <req.session.username> 'user1'
+// }
+
 
     Fruit.create(req.body, (err, createdFruit) =>{
         console.log('created' , createdFruit, err)
